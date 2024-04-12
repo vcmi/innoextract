@@ -6,6 +6,7 @@ endif()
 
 project(innoextract)
 
+set(VCMI_INNOEXTRACT ON)
 
 # Define configuration options
 
@@ -59,7 +60,11 @@ if(DEVELOPER OR CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
 	set(default_DEBUG OFF)
 endif()
-suboption(DEBUG "Build with debug output" BOOL ${default_DEBUG})
+if(VCMI_INNOEXTRACT)
+	suboption(DEBUG "Build with debug output" BOOL OFF)
+else()
+	suboption(DEBUG "Build with debug output" BOOL ${default_DEBUG})
+endif()
 if(DEBUG)
 	add_definitions(-DDEBUG=1)
 endif()
@@ -106,7 +111,9 @@ endif()
 include(CheckSymbolExists)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake") # For custom cmake modules
-include(BuildType)
+if(NOT VCMI_INNOEXTRACT)
+	include(BuildType)
+endif()
 include(CompileCheck)
 include(CreateSourceGroups)
 include(CXXVersionCheck)
@@ -122,8 +129,10 @@ include(VersionString)
 
 # Win32 API
 if(WIN32)
-	# Ensure we aren't using functionalities not found under Window XP SP1
-	add_definitions(-D_WIN32_WINNT=0x0502)
+	if(NOT VCMI_INNOEXTRACT)
+		# Ensure we aren't using functionalities not found under Window XP SP1
+		add_definitions(-D_WIN32_WINNT=0x0502)
+	endif()
 	add_definitions(-DNOMINMAX)
 	add_definitions(-DWIN32_LEAN_AND_MEAN)
 endif()
@@ -457,6 +466,11 @@ create_source_groups(ALL_INNOEXTRACT_SOURCES)
 
 include_directories(src ${CMAKE_CURRENT_BINARY_DIR})
 
+if(VCMI_INNOEXTRACT)
+	set(INNOEXTRACT_HAVE_STD_UNIQUE_PTR ON) #cpp17 fix
+	set(INNOEXTRACT_HAVE_STD_CODECVT_UTF8_UTF16 OFF) #cpp17 fix
+endif()
+
 configure_file("src/configure.hpp.in" "configure.hpp")
 
 set(VERSION_FILE "${PROJECT_BINARY_DIR}/release.cpp")
@@ -471,22 +485,28 @@ version_file(${MAN_INPUT} ${MAN_FILE} "${MAN_SOURCES}" ".git")
 add_custom_target(manpage ALL DEPENDS ${MAN_FILE})
 
 
-# Main targets
+if(NOT VCMI_INNOEXTRACT)
+	# Main targets
 
-add_executable(innoextract ${INNOEXTRACT_SOURCES})
-target_link_libraries(innoextract ${LIBRARIES})
+	add_executable(innoextract ${INNOEXTRACT_SOURCES})
+	target_link_libraries(innoextract ${LIBRARIES})
 
-install(TARGETS innoextract RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+	install(TARGETS innoextract RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-install(FILES ${MAN_FILE} DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 OPTIONAL)
+	install(FILES ${MAN_FILE} DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 OPTIONAL)
 
 
-# Additional targets.
+	# Additional targets.
 
-add_style_check_target(style "${ALL_INNOEXTRACT_SOURCES}" innoextract)
+	add_style_check_target(style "${ALL_INNOEXTRACT_SOURCES}" innoextract)
 
-add_doxygen_target(doc "doc/Doxyfile.in" "VERSION" ".git" "${PROJECT_BINARY_DIR}/doc")
+	add_doxygen_target(doc "doc/Doxyfile.in" "VERSION" ".git" "${PROJECT_BINARY_DIR}/doc")
 
+else()
+	add_library(innoextract STATIC ${INNOEXTRACT_SOURCES})
+	target_link_libraries(innoextract ${LIBRARIES})
+	target_include_directories(innoextract PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+endif()
 
 # Print a configuration summary
 
