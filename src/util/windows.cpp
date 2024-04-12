@@ -498,7 +498,7 @@ int console_width() {
 
 // We really want main here, not utf8_main.
 #undef main
-int main() {
+/*int main() {
 	
 	// We use UTF-8 for everything internally, as almost all modern operating systems
 	// have standardized on that. However, as usual, Windows has to do its own thing
@@ -530,4 +530,4 @@ int main() {
 	util::console_wrapper wrapped;
 	
 	return utf8_main(argc, argv);
-}
+}*/
