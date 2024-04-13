@@ -498,7 +498,8 @@ int console_width() {
 
 // We really want main here, not utf8_main.
 #undef main
-/*int main() {
+/* mingw has some problems with double defined main-function. But this function is not necessary if using as "lib" -> commented out
+int main() {
 	
 	// We use UTF-8 for everything internally, as almost all modern operating systems
 	// have standardized on that. However, as usual, Windows has to do its own thing

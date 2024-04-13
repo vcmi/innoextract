@@ -61,7 +61,7 @@ else()
 	set(default_DEBUG OFF)
 endif()
 if(VCMI_INNOEXTRACT)
-	suboption(DEBUG "Build with debug output" BOOL OFF)
+	suboption(DEBUG "Build with debug output" BOOL OFF) # causes some problems with data offsets in options structure if enabled
 else()
 	suboption(DEBUG "Build with debug output" BOOL ${default_DEBUG})
 endif()
@@ -111,7 +111,7 @@ endif()
 include(CheckSymbolExists)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake") # For custom cmake modules
-if(NOT VCMI_INNOEXTRACT)
+if(NOT VCMI_INNOEXTRACT) # linkage error
 	include(BuildType)
 endif()
 include(CompileCheck)
@@ -129,7 +129,7 @@ include(VersionString)
 
 # Win32 API
 if(WIN32)
-	if(NOT VCMI_INNOEXTRACT)
+	if(NOT VCMI_INNOEXTRACT) # already defined in vcmi
 		# Ensure we aren't using functionalities not found under Window XP SP1
 		add_definitions(-D_WIN32_WINNT=0x0502)
 	endif()
@@ -467,8 +467,8 @@ create_source_groups(ALL_INNOEXTRACT_SOURCES)
 include_directories(src ${CMAKE_CURRENT_BINARY_DIR})
 
 if(VCMI_INNOEXTRACT)
-	set(INNOEXTRACT_HAVE_STD_UNIQUE_PTR ON) #cpp17 fix
-	set(INNOEXTRACT_HAVE_STD_CODECVT_UTF8_UTF16 OFF) #cpp17 fix
+	set(INNOEXTRACT_HAVE_STD_UNIQUE_PTR ON) # cpp17 fix
+	set(INNOEXTRACT_HAVE_STD_CODECVT_UTF8_UTF16 OFF) # cpp17 fix
 endif()
 
 configure_file("src/configure.hpp.in" "configure.hpp")
@@ -502,7 +502,7 @@ if(NOT VCMI_INNOEXTRACT)
 
 	add_doxygen_target(doc "doc/Doxyfile.in" "VERSION" ".git" "${PROJECT_BINARY_DIR}/doc")
 
-else()
+else() # build as lib
 	add_library(innoextract STATIC ${INNOEXTRACT_SOURCES})
 	target_link_libraries(innoextract ${LIBRARIES})
 	target_include_directories(innoextract PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
