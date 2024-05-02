@@ -890,7 +890,7 @@ void create_output_directory(const extract_options & o) {
 
 } // anonymous namespace
 
-void process_file(const fs::path & installer, const extract_options & o) {
+void process_file(const fs::path & installer, const extract_options & o, std::function<void(float percent)> cb) {
 	
 	bool is_directory;
 	try {
@@ -1104,6 +1104,7 @@ void process_file(const fs::path & installer, const extract_options & o) {
 	}
 	
 	boost::uint64_t total_size = 0;
+	boost::uint64_t total_process = 0;
 	
 	typedef std::map<stream::file, size_t> Files;
 	typedef std::map<stream::chunk, Files> Chunks;
@@ -1319,6 +1320,11 @@ void process_file(const fs::path & installer, const extract_options & o) {
 					}
 					extract_progress.update(boost::uint64_t(n));
 					output_size += boost::uint64_t(n);
+					total_process += boost::uint64_t(n);
+
+					float percent = (float(std::min(total_process, total_size)) / float(total_size));
+					if(cb)
+						cb(percent);
 				}
 			}
 			
