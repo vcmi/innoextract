@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Daniel Scharrer
+ * Copyright (C) 2024 Daniel Scharrer
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author(s) be held liable for any damages
@@ -21,10 +21,10 @@
 /*!
  * \file
  *
- * Alledged RC4 en-/decryption routines.
+ * ChaCha20 en-/decryption routines.
  */
-#ifndef INNOEXTRACT_CRYPTO_ARC4_HPP
-#define INNOEXTRACT_CRYPTO_ARC4_HPP
+#ifndef INNOEXTRACT_CRYPTO_XCHACHA20_HPP
+#define INNOEXTRACT_CRYPTO_XCHACHA20_HPP
 
 #include <stddef.h>
 
@@ -36,10 +36,17 @@
 
 namespace crypto {
 
-//! Alledged RC4 en-/decryption calculation
-struct arc4 {
+//! ChaCha20 en-/decryption calculation
+struct xchacha20 {
 	
-	void init(const char * key, size_t length);
+	enum constants {
+		key_size = 32,
+		nonce_size = 24,
+	};
+	
+	typedef boost::uint32_t word;
+	
+	void init(const char key[key_size], const char nonce[nonce_size]);
 	
 	void discard(size_t length);
 	
@@ -49,13 +56,25 @@ private:
 	
 	void update();
 	
-	boost::uint8_t state[256];
-	size_t a, b;
+	static void derive_subkey(const char key[key_size], const char nonce[16], char subkey[key_size]);
 	
+	static void init_state(word state[16], const char key[key_size]);
+	
+	static void run_rounds(word keystream[16]);
+	
+	static void increment_count(word state[16], size_t increment = 1);
+	
+	word state[16];
+	word keystream[16];
+	boost::uint8_t pos;
+	
+	#ifdef INNOEXTRACT_BUILD_TESTS
+	friend struct xchacha20_test;
+	#endif
 };
 
 } // namespace crypto
 
 #endif // INNOEXTRACT_HAVE_DECRYPTION
 
-#endif // INNOEXTRACT_CRYPTO_ARC4_HPP
+#endif // INNOEXTRACT_CRYPTO_XCHACHA20_HPP

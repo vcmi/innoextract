@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Daniel Scharrer
+ * Copyright (C) 2024 Daniel Scharrer
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author(s) be held liable for any damages
@@ -21,10 +21,10 @@
 /*!
  * \file
  *
- * MD5 hashing routines.
+ * SHA-256 hashing routines.
  */
-#ifndef INNOEXTRACT_CRYPTO_MD5_HPP
-#define INNOEXTRACT_CRYPTO_MD5_HPP
+#ifndef INNOEXTRACT_CRYPTO_SHA256_HPP
+#define INNOEXTRACT_CRYPTO_SHA256_HPP
 
 #include <boost/cstdint.hpp>
 
@@ -33,26 +33,25 @@
 
 namespace crypto {
 
-class md5_transform {
+class sha256_transform {
 	
 public:
 	
 	typedef boost::uint32_t hash_word;
-	typedef util::little_endian byte_order;
+	typedef util::big_endian byte_order;
 	enum constants {
-		offset = 0,
+		offset = 1,
 		block_size = 64,
-		hash_size = 16,
+		hash_size = 32,
 	};
 	
 	static void init(hash_word * state);
 	
 	static void transform(hash_word * state, const hash_word * data);
-	
 };
 
-typedef iterated_hash<md5_transform> md5;
+typedef iterated_hash<sha256_transform> sha256;
 
 } // namespace crypto
 
-#endif // INNOEXTRACT_CRYPTO_MD5_HPP
+#endif // INNOEXTRACT_CRYPTO_SHA256_HPP
